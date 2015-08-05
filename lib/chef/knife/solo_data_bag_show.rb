@@ -18,9 +18,20 @@ class Chef
         :long  => '--secret SECRET',
         :description => 'The secret key to use to encrypt data bag item values'
 
-      option :secret_file,
-        :long  => '--secret-file SECRET_FILE',
+      option :secret_file_path,
+        :long  => '--secret-file-path SECRET_FILE',
         :description => 'A file containing the secret key to use to encrypt data bag item values'
+
+      option :enable_aws_kms,
+        :long => '--enable-aws-kms',
+        :description => 'Flag to enable decryption of data bag secret using AWS KMS',
+        :boolean => true
+
+      option :region,
+         :short => '-r AWS_REGION',
+         :long => '--region AWS_REGION',
+         :description => 'AWS Region to be used for decryption via AWS KMS',
+         :default => 'us-east-1'
 
       option :data_bag_path,
         :long => '--data-bag-path DATA_BAG_PATH',
@@ -30,6 +41,7 @@ class Chef
         Chef::Config[:solo]   = true
         @bag_name, @item_name = @name_args
         ensure_valid_arguments
+        resolve_secret_file
         display_content
       end
 
@@ -56,6 +68,8 @@ class Chef
         validate_bag_name_provided
         validate_bags_path_exists
         validate_multiple_secrets_were_not_provided
+        validate_environment_if_secret_file_path_is_provided
+        validate_aws_regions
       end
 
     end
